@@ -1,0 +1,73 @@
+<!--
+  @license
+  Copyright (c) 2015 Xinix Technology
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+-->
+
+<!-- <script src="http://www.parsecdn.com/js/parse-1.5.0.js"></script> -->
+<!-- <script src="http://www.parsecdn.com/js/parse-1.5.0.min.js"></script> -->
+<script src="./js/parse-1.5.0.min.js"></script>
+
+<script type="text/javascript">
+(function(root) {
+  'use strict';
+
+  var xin = root.xin;
+
+  xin.data.register('parse', {
+    initialize: function() {
+      Parse.initialize(this.options.applicationId, this.options.javaScriptKey);
+    },
+
+    fetch: function(cursor, parameters) {
+      var Model = Parse.Object.extend(cursor.collection.uri);
+      var query = new Parse.Query(Model);
+
+      var promise;
+      if (typeof cursor.criteria === 'string') {
+        return query.get(cursor.criteria)
+          .then(function(row) {
+            return [row.toJSON()];
+          });
+      } else {
+        return query.find()
+          .then(function(rows) {
+            return rows.map(function(row) {
+              var newRow = row.toJSON();
+              newRow.$id = newRow.objectId;
+              return newRow;
+            });
+          });
+      }
+    },
+
+    persist: function(collection, row) {
+      var Model = Parse.Object.extend(collection.uri);
+      var model = new Model();
+
+      model.set(row);
+      return model.save()
+        .then(function(model) {
+          return model.toJSON();
+        });
+    }
+  });
+})(this);
+</script>
